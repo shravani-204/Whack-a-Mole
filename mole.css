@@ -1,0 +1,74 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    background: url("/images/20250215_132623.png") no-repeat center center fixed;
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* Set cursor to hammer image */
+
+#board {
+    width: 540px;
+    height: 540px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 180px);
+    grid-template-rows: repeat(3, 180px);
+    background: url("/images/soil.jpg");
+    background-size: cover;
+    border: 3px solid black;
+    border-radius: 25px;
+    cursor: url("/images/hammer.png") 16 16, auto;
+}
+
+
+/* Style the hammer to ensure it moves with the cursor */
+
+
+/* Style the hammer to ensure it moves with the cursor */
+
+#hammer {
+    position: absolute;
+    /* Allows it to be positioned relative to the page */
+    pointer-events: none;
+    /* Ensures the hammer doesn't interfere with clicking the board */
+    z-index: 9999;
+    /* Makes sure the hammer is above the game board */
+    width: 70px;
+    /* Resize the hammer */
+    height: 70px;
+    /* Resize the hammer */
+}
+
+#board div {
+    width: 180px;
+    height: 180px;
+    background-image: url("/images/hole1.png");
+    background-size: cover;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#board div img {
+    width: 100px;
+    height: 100px;
+    user-select: none;
+    pointer-events: none;
+}
+
+h1 {
+    font-size: 36px;
+    color: white;
+    margin-top: 50px;
+}
+
+h2 {
+    font-size: 24px;
+    color: white;
+    margin-bottom: 20px;
+}

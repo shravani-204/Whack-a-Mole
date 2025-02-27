@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack a Mole</title>
+    <link rel="stylesheet" href="./mole.css">
+    <script src="./mole.js" defer></script>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            background: url("/images/20250215_132623.png") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #board {
+            width: 540px;
+            height: 540px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 180px);
+            grid-template-rows: repeat(3, 180px);
+            background: url("/images/soil.jpg");
+            background-size: cover;
+            border: 3px solid black;
+            border-radius: 25px;
+            cursor: url("/images/hammer.png") 16 16, auto;
+        }
+        
+        #board div {
+            width: 180px;
+            height: 180px;
+            background-image: url("/images/hole1.png");
+            background-size: cover;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #board div img {
+            width: 100px;
+            height: 100px;
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        h1 {
+            font-size: 36px;
+            color: white;
+            margin-top: 50px;
+        }
+        
+        h2 {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        dialog {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WHACK A MOLE</h1>
+    <h2 id="score">SCORE: 0</h2>
+    <div id="board"></div>
+
+    <div class="cursor">
+        <img src="/images/hammer.png" alt="" id="hammer">
+    </div>
+
+    <!-- Game Over Dialog Box -->
+    <dialog id="gameOverModal">
+        <h3>GAME OVER! Your final score is: <span id="finalScore"></span></h3>
+        <button onclick="restartGame()">Restart Game</button>
+    </dialog>
+</body>
+
+<script>
+    let currMoleTile;
+    let currBombTile;
+    let score = 0;
+    let gameOver = false;
+
+    // Create an Audio object for the hit sound and bomb sound
+    const hitSound = new Audio("/sound/hit_sound.mp3"); // Correct the path to sound file
+    const bombSound = new Audio("/sound/bomb_sound.mp3"); // Correct the path for bomb sound
+
+    // Preload the sounds
+    hitSound.preload = "auto";
+    bombSound.preload = "auto";
+
+    // Add an event listener for mouse movement to follow the cursor
+    window.addEventListener("mousemove", (e) => {
+        const hammer = document.getElementById("hammer");
+        hammer.style.left = `${e.pageX - hammer.offsetWidth / 2}px`;
+        hammer.style.top = `${e.pageY - hammer.offsetHeight / 2}px`;
+    });
+
+    // Initialize the game when the page loads
+    window.onload = () => {
+        setGame();
+    };
+
+    function setGame() {
+        // Set up the grid in HTML
+        for (let i = 0; i < 9; i++) {
+            const tile = document.createElement("div");
+            tile.id = i.toString();
+            tile.addEventListener("mouseover", handleMouseOver);
+            tile.addEventListener("click", selectTile);
+            document.getElementById("board").appendChild(tile);
+        }
+
+        // Set moles and bombs at intervals
+        setInterval(setMole, 2000); // Every 1 second, set a new mole
+        setInterval(setBomb, 3000); // Every 2 seconds, set a new bomb
+    }
+
+    function getRandomTile() {
+        return Math.floor(Math.random() * 9).toString();
+    }
+
+    function setMole() {
+        if (gameOver) return;
+
+        // Remove previous mole if it exists
+        if (currMoleTile && currMoleTile.firstChild) {
+            currMoleTile.innerHTML = "";
+        }
+
+        // Create new mole
+        const mole = document.createElement("img");
+        mole.src = "/images/mole.png";
+
+        const num = getRandomTile();
+
+        currMoleTile = document.getElementById(num);
+        if (currMoleTile) {
+            currMoleTile.appendChild(mole); // Add mole to the selected tile
+        }
+    }
+
+    function setBomb() {
+        if (gameOver) return;
+
+        // Remove previous bomb if it exists
+        if (currBombTile && currBombTile.firstChild) {
+            currBombTile.innerHTML = "";
+        }
+
+        // Create new bomb
+        const bomb = document.createElement("img");
+        bomb.src = "/images/bomb.png";
+
+        const num = getRandomTile();
+
+        // Avoid placing the bomb where the mole is
+        if (currMoleTile && currMoleTile.id === num) {
+            return;
+        }
+
+        currBombTile = document.getElementById(num);
+        if (currBombTile) {
+            currBombTile.appendChild(bomb); // Add bomb to the selected tile
+        }
+    }
+
+    function handleMouseOver(event) {
+        if (gameOver) return;
+
+        const tile = event.target;
+
+        // Check if the tile is the current mole tile
+        if (tile === currMoleTile) {
+            score += 10;
+            document.getElementById("score").innerText = `SCORE : ${score}`;
+
+            // Play the hit sound when the mole is hit
+            hitSound.play().catch((e) => {
+                console.error("Error playing sound: ", e);
+            });
+        }
+
+        // Check if the tile is the current bomb tile
+        else if (tile === currBombTile) {
+            bombSound.play().catch((e) => {
+                console.error("Error playing bomb sound: ", e);
+            });
+
+            // Display the game over dialog
+            document.getElementById("finalScore").innerText = score;
+            document.getElementById("gameOverModal").showModal(); // Show the dialog box
+
+            gameOver = true;
+            document.getElementById("score").innerText = `GAME OVER: ${score}`;
+        }
+    }
+
+    function selectTile() {
+        if (gameOver) return;
+        // No functionality for tile clicks yet, can be expanded if needed
+    }
+
+    function restartGame() {
+        // Reset game variables and restart
+        score = 0;
+        gameOver = false;
+        document.getElementById("score").innerText = `SCORE: ${score}`;
+        document.getElementById("gameOverModal").close(); // Close the dialog box
+        setGame();
+    }
+</script>
+
+</html>
